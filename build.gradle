@@ -1,0 +1,42 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'T5 Commons', 'Implementation-Version': version
+    }
+    from sourceSets.main.allJava
+}
+
+repositories {
+    mavenCentral()
+    maven {
+    	url 'http://developer.marklogic.com/maven2'
+    }
+}
+
+dependencies {
+    compile 'commons-collections:commons-collections:3.2'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.slf4j:slf4j-log4j12:1.7.10'
+    compile 'com.marklogic:marklogic-xcc:7.0.4'
+    compile 'ca.uhn.hapi.fhir:hapi-fhir-base:0.9'
+    compile 'ca.uhn.hapi.fhir:hapi-fhir-structures-dstu2:0.9'
+    
+    testCompile 'junit:junit:4.+'
+    testCompile 'org.mockito:mockito-core:1.+'
+}
+
+test {
+    systemProperties 'property': 'value'
+}
+
+uploadArchives {
+    repositories {
+       flatDir {
+           dirs '../t5-repo'
+       }
+    }
+}
