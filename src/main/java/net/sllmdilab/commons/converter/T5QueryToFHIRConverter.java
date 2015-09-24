@@ -97,7 +97,7 @@ public class T5QueryToFHIRConverter {
 
 			String uid = elem.getAttribute("uid");
 			obs.setId(uid);
-			
+
 			obs.setValue(parseValue(elem, unitUCUM));
 			obs.setApplies(parseTime(elem));
 		}
@@ -118,11 +118,12 @@ public class T5QueryToFHIRConverter {
 		String value = elem.getAttribute("value");
 		String sampleRate = elem.getAttribute("sampleRate");
 		String unit = elem.getAttribute("unit");
+		String dataRange = elem.getAttribute("dataRange");
 
 		if (isNumeric(value)) {
 			return parseScalarValue(value, unit, unitUCUM);
 		} else if (value.startsWith("NA")) {
-			return parseNumericArrayValue(value, sampleRate, unit);
+			return parseNumericArrayValue(value, sampleRate, unit, dataRange);
 		} else {
 			return parseStringValue(value);
 		}
@@ -141,12 +142,12 @@ public class T5QueryToFHIRConverter {
 
 		return quantity;
 	}
-	
+
 	private StringDt parseStringValue(String value) {
 		return new StringDt(value);
 	}
 
-	private SampledDataDt parseNumericArrayValue(String samples, String sampleRate, String unitCode) {
+	private SampledDataDt parseNumericArrayValue(String samples, String sampleRate, String unitCode, String dataRange) {
 		SampledDataDt sampledData = new SampledDataDt();
 
 		setSampleData(samples, sampledData);
@@ -154,7 +155,24 @@ public class T5QueryToFHIRConverter {
 		setPeriod(sampleRate, sampledData);
 
 		setOrigin(unitCode, sampledData);
+
+		setRange(dataRange, sampledData);
+
 		return sampledData;
+	}
+
+	private void setRange(String dataRange, SampledDataDt sampledData) {
+		Pattern pattern = Pattern.compile("NR\\[(.*)\\]");
+		Matcher matcher = pattern.matcher(dataRange);
+		if (!matcher.matches()) {
+			throw new XmlParsingException("Unable to parse numeric array.");
+		}
+		String[] range = matcher.group(1).split("\\^");
+		if (range.length != 2) {
+			throw new XmlParsingException("Data range contains " + range.length + " values, should contain 2");
+		}
+		sampledData.setLowerLimit(Double.parseDouble(range[0]));
+		sampledData.setUpperLimit(Double.parseDouble(range[1]));
 	}
 
 	private void setOrigin(String unitCode, SampledDataDt sampledData) {
@@ -166,12 +184,12 @@ public class T5QueryToFHIRConverter {
 	private void setPeriod(String sampleRate, SampledDataDt sampledData) {
 		if (!StringUtils.isBlank(sampleRate) && isNumeric(sampleRate)) {
 			double dblSampleRate = Double.parseDouble(sampleRate);
-			if(dblSampleRate > 0){
+			if (dblSampleRate > 0) {
 				sampledData.setPeriod(sampleRateToPeriod(Double.parseDouble(sampleRate)));
 			}
 		}
 	}
-	
+
 	private double sampleRateToPeriod(double sampleRate) {
 		return 1000.0 / sampleRate;
 	}
@@ -225,7 +243,7 @@ public class T5QueryToFHIRConverter {
 	public List<Patient> convertToPatientSummary(Document xmlXQueryResponse) {
 		ArrayList<Patient> summaryList = new ArrayList<>();
 		NodeList listPid = xmlXQueryResponse.getElementsByTagName("PID");
-		
+
 		for (int i = 0; i < listPid.getLength(); i++) {
 			Element elem = (Element) listPid.item(i);
 			String strPid = elem.getTextContent();

@@ -11,7 +11,6 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sllmdilab.commons.converter.T5QueryToFHIRConverter;
 import net.sllmdilab.commons.t5.validators.RosettaValidator;
 
 import org.junit.Before;
@@ -47,20 +46,24 @@ public class T5QueryToFHIRConverterTest {
 	private static final String MOCK_DATE2 = "2015-02-17T13:35:44.405Z";
 	private static final String MOCK_VALUE2 = "44.2";
 	private static final String MOCK_MDC_PID = "010101-2425";
-	private static final String MOCK_WAVEFORM_DATA ="NA[0.0^0.1^0.2^0.3]";
-	private static final String MOCK_WAVEFORM_DATA_FHIR ="0.0 0.1 0.2 0.3";
-	private static final String MOCK_WAVEFORM_UNIT ="MDC_DIM_MILLI_VOLT";
-	private static final String MOCK_WAVEFORM_SAMPLE_RATE ="4";
+	private static final String MOCK_WAVEFORM_DATA = "NA[0.0^0.1^0.2^0.3]";
+	private static final String MOCK_WAVEFORM_DATA_FHIR = "0.0 0.1 0.2 0.3";
+	private static final String MOCK_WAVEFORM_UNIT = "MDC_DIM_MILLI_VOLT";
+	private static final String MOCK_WAVEFORM_SAMPLE_RATE = "4";
+	private static final String MOCK_WAVEFORM_DATA_RANGE = "NR[0.0^1.0]";
+	private static final double MOCK_WAVEFORM_LOWER_LIMIT = 0.0;
+	private static final double MOCK_WAVEFORM_UPPER_LIMIT = 1.0;
 
 	private static final String MOCK_RESPONSE = "<trend>" + "<point uid=\"" + MOCK_UID + "\"" + " time=\"" + MOCK_DATE
 			+ "\" value=\"" + MOCK_VALUE + "\" unit=\"" + MOCK_UNIT + "\" unitSystem = \"" + MOCK_DEFAULT_CODE_SYSTEM
 			+ "\"></point>" + "<point time=\"" + MOCK_DATE2 + "\" value=\"" + MOCK_VALUE2 + "\" unit=\"" + MOCK_UNIT
 			+ "\" unitSystem = \"" + MOCK_DEFAULT_CODE_SYSTEM + "\"></point>" + "</trend>";
-	
-	private static final String MOCK_WAVEFORM_RESPONSE = "<trend>" + "<point uid=\"" + MOCK_UID + "\"" + " time=\"" + MOCK_DATE
-			+ "\" value=\"" + MOCK_VALUE + "\" unit=\"" + MOCK_UNIT + "\" unitSystem = \"" + MOCK_DEFAULT_CODE_SYSTEM
-			+ "\"></point>" + "<point time=\"" + MOCK_DATE2 + "\" value=\"" + MOCK_WAVEFORM_DATA + "\" unit=\"" + MOCK_WAVEFORM_UNIT
-			+ "\" unitSystem = \"" + MOCK_DEFAULT_CODE_SYSTEM + "\" sampleRate=\""+  MOCK_WAVEFORM_SAMPLE_RATE +  "\"></point>" + "</trend>";
+
+	private static final String MOCK_WAVEFORM_RESPONSE = "<trend>" + "<point uid=\"" + MOCK_UID + "\"" + " time=\""
+			+ MOCK_DATE + "\" value=\"" + MOCK_VALUE + "\" unit=\"" + MOCK_UNIT + "\" unitSystem = \""
+			+ MOCK_DEFAULT_CODE_SYSTEM + "\"></point>" + "<point time=\"" + MOCK_DATE2 + "\" value=\""
+			+ MOCK_WAVEFORM_DATA + "\" unit=\"" + MOCK_WAVEFORM_UNIT + "\" unitSystem = \"" + MOCK_DEFAULT_CODE_SYSTEM
+			+ "\" sampleRate=\"" + MOCK_WAVEFORM_SAMPLE_RATE + "\" dataRange=\"" + MOCK_WAVEFORM_DATA_RANGE + "\"></point>" + "</trend>";
 
 	private static final String TEST_XML_OBS_NAMES = "<ObsTypes>" + "<ObsName>MDC_RESP_RATE</ObsName>"
 			+ "<ObsName>MDC_ECG_CARD_BEAT_RATE</ObsName>" + "</ObsTypes>";
@@ -78,7 +81,7 @@ public class T5QueryToFHIRConverterTest {
 
 	@Before
 	public void init() throws Exception {
-		
+
 		dbf = DocumentBuilderFactory.newInstance();
 		documentBuilder = dbf.newDocumentBuilder();
 
@@ -87,8 +90,8 @@ public class T5QueryToFHIRConverterTest {
 
 	@Test
 	public void pointIsConverted() throws Exception {
-		List<Observation> listObservations = converter.convertToObservations(MOCK_PATIENT_ID, MOCK_DEVICE_ID, MOCK_MDC_CODE,
-				MOCK_DEFAULT_CODE_SYSTEM, xmlStringToDocument(MOCK_RESPONSE));
+		List<Observation> listObservations = converter.convertToObservations(MOCK_PATIENT_ID, MOCK_DEVICE_ID,
+				MOCK_MDC_CODE, MOCK_DEFAULT_CODE_SYSTEM, xmlStringToDocument(MOCK_RESPONSE));
 
 		for (int i = 0; i < listObservations.size(); i++) {
 			Observation observation = (Observation) listObservations.get(i);
@@ -99,20 +102,22 @@ public class T5QueryToFHIRConverterTest {
 
 		Observation observation = (Observation) listObservations.get(0);
 		DateTimeDt dt = (DateTimeDt) observation.getApplies();
-		assertEquals(ZonedDateTime.parse(MOCK_DATE2, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant().toEpochMilli(),
-				dt.getValue().toInstant().toEpochMilli());
+		assertEquals(
+				ZonedDateTime.parse(MOCK_DATE2, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant().toEpochMilli(), dt
+						.getValue().toInstant().toEpochMilli());
 
 		assertEquals(MOCK_MDC_CODE, observation.getCode().getCoding().get(0).getCode());
 		assertEquals(MOCK_DEFAULT_CODE_SYSTEM, observation.getCode().getCoding().get(0).getSystem());
 		assertEquals(MOCK_VALUE2, ((QuantityDt) observation.getValue()).getValue().toPlainString());
-		assertEquals(MOCK_PATIENT_RESOURCE_PREFIX + MOCK_PATIENT_ID, observation.getSubject().getReference().getValueAsString());
+		assertEquals(MOCK_PATIENT_RESOURCE_PREFIX + MOCK_PATIENT_ID, observation.getSubject().getReference()
+				.getValueAsString());
 		assertEquals("Device/" + MOCK_DEVICE_ID, observation.getPerformer().get(0).getReference().getValueAsString());
 	}
-	
+
 	@Test
 	public void waveformIsConverted() throws Exception {
-		List<Observation> listObservations = converter.convertToObservations(MOCK_PATIENT_ID, MOCK_DEVICE_ID, MOCK_MDC_CODE,
-				MOCK_DEFAULT_CODE_SYSTEM, xmlStringToDocument(MOCK_WAVEFORM_RESPONSE));
+		List<Observation> listObservations = converter.convertToObservations(MOCK_PATIENT_ID, MOCK_DEVICE_ID,
+				MOCK_MDC_CODE, MOCK_DEFAULT_CODE_SYSTEM, xmlStringToDocument(MOCK_WAVEFORM_RESPONSE));
 
 		for (int i = 0; i < listObservations.size(); i++) {
 			Observation observation = (Observation) listObservations.get(i);
@@ -123,18 +128,22 @@ public class T5QueryToFHIRConverterTest {
 
 		Observation observation = (Observation) listObservations.get(0);
 		DateTimeDt dt = (DateTimeDt) observation.getApplies();
-		assertEquals(ZonedDateTime.parse(MOCK_DATE2, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant().toEpochMilli(),
-				dt.getValue().toInstant().toEpochMilli());
+		assertEquals(
+				ZonedDateTime.parse(MOCK_DATE2, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toInstant().toEpochMilli(), dt
+						.getValue().toInstant().toEpochMilli());
 
 		assertEquals(MOCK_MDC_CODE, observation.getCode().getCoding().get(0).getCode());
 		assertEquals(MOCK_DEFAULT_CODE_SYSTEM, observation.getCode().getCoding().get(0).getSystem());
-		
+
 		SampledDataDt sampledData = ((SampledDataDt) observation.getValue());
 		assertEquals(MOCK_WAVEFORM_DATA_FHIR, sampledData.getData());
 		assertEquals(250.0, sampledData.getPeriod().doubleValue(), 0.00001);
 		assertEquals(MOCK_WAVEFORM_UNIT, sampledData.getOrigin().getUnits());
-		
-		assertEquals(MOCK_PATIENT_RESOURCE_PREFIX + MOCK_PATIENT_ID, observation.getSubject().getReference().getValueAsString());
+		assertEquals(MOCK_WAVEFORM_LOWER_LIMIT, sampledData.getLowerLimit().doubleValue(), 0.001);
+		assertEquals(MOCK_WAVEFORM_UPPER_LIMIT, sampledData.getUpperLimit().doubleValue(), 0.001);
+
+		assertEquals(MOCK_PATIENT_RESOURCE_PREFIX + MOCK_PATIENT_ID, observation.getSubject().getReference()
+				.getValueAsString());
 		assertEquals("Device/" + MOCK_DEVICE_ID, observation.getPerformer().get(0).getReference().getValueAsString());
 	}
 
