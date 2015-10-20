@@ -193,9 +193,13 @@ public class RosettaValidator {
 		if (mapSynonyms.containsKey(refid))
 			result = mapSynonyms.get(refid);
 		else {
-
+			NodeList list;
+			try {
 			Element elemTerm = mapHarmonizedRosetta.get(refid);
-			NodeList list = ((Element) elemTerm.getParentNode()).getElementsByTagName("Synonym");
+			list = ((Element) elemTerm.getParentNode()).getElementsByTagName("Synonym");
+			} catch(NullPointerException e) {
+				return null;
+			}
 
 			if (list.getLength() > 0) {
 				Element elemSyn = (Element) list.item(0);
