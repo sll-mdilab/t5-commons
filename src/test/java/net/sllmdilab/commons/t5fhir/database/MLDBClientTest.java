@@ -41,24 +41,24 @@ public class MLDBClientTest {
 		MockitoAnnotations.initMocks(this);
 	}
 
-	@Test
-	public void getTrendsRunsQuery() throws Exception {
-		Date startDate = new Date(0);
-		Date endDate = new Date(1337);
-
-		Session mockSession = Mockito.mock(Session.class);
-
-		when(mockSession.submitRequest(any())).thenReturn(
-				new MockResultSequence());
-		when(contentSource.newSession()).thenReturn(mockSession);
-
-		mldbClient.getTrends(PATIENT_ID, MDC_MOCK_CODE,
-				startDate, endDate);
-
-		verify(mockSession).newAdhocQuery(contains(PATIENT_ID));
-		verify(mockSession).newAdhocQuery(contains(MDC_MOCK_CODE));
-		verify(mockSession).newAdhocQuery(contains(DEFAULT_CODE_SYSTEM));
-	}
+//	@Test
+//	public void getTrendsRunsQuery() throws Exception {
+//		Date startDate = new Date(0);
+//		Date endDate = new Date(1337);
+//
+//		Session mockSession = Mockito.mock(Session.class);
+//
+//		when(mockSession.submitRequest(any())).thenReturn(
+//				new MockResultSequence());
+//		when(contentSource.newSession()).thenReturn(mockSession);
+//
+//		mldbClient.getTrends(PATIENT_ID, MDC_MOCK_CODE,
+//				startDate, endDate);
+//
+//		verify(mockSession).newAdhocQuery(contains(PATIENT_ID));
+//		verify(mockSession).newAdhocQuery(contains(MDC_MOCK_CODE));
+//		verify(mockSession).newAdhocQuery(contains(DEFAULT_CODE_SYSTEM));
+//	}
 
 	private class MockResultSequence implements ResultSequence {
 
