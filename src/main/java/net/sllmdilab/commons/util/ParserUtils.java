@@ -19,7 +19,10 @@ public class ParserUtils {
 
 	public static Document parseXmlString(String response) {
 		try {
-			DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			
+			DocumentBuilder documentBuilder = factory.newDocumentBuilder();
 			return documentBuilder.parse(new InputSource(new StringReader(response)));
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			throw new XmlParsingException(e);

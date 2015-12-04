@@ -8,13 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import net.sllmdilab.commons.exceptions.XmlParsingException;
-import net.sllmdilab.commons.t5.validators.RosettaValidator;
-import net.sllmdilab.commons.util.T5FHIRUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +27,9 @@ import ca.uhn.fhir.model.dstu2.resource.Patient;
 import ca.uhn.fhir.model.primitive.DateTimeDt;
 import ca.uhn.fhir.model.primitive.InstantDt;
 import ca.uhn.fhir.model.primitive.StringDt;
+import net.sllmdilab.commons.exceptions.XmlParsingException;
+import net.sllmdilab.commons.t5.validators.RosettaValidator;
+import net.sllmdilab.commons.util.T5FHIRUtils;
 
 public class T5QueryToFHIRConverter {
 
