@@ -151,7 +151,7 @@ public class ObservationToT5XmlConverter {
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Constants.ISO_DATE_FORMAT).withZone(
 				ZoneId.of("UTC"));
 
-		DateTimeDt dateValue = (DateTimeDt) obs.getApplies();
+		DateTimeDt dateValue = (DateTimeDt) obs.getEffective();
 
 		ZoneId zoneId = (dateValue.getTimeZone() != null) ? dateValue.getTimeZone().toZoneId() : ZoneId.of("UTC");
 

@@ -49,7 +49,7 @@ public class ObservationToT5XmlConverterTest {
 		Observation observation = new Observation();
 
 		DateTimeDt applies = new DateTimeDt(MOCK_TIMESTAMP_ZONED);
-		observation.setApplies(applies);
+		observation.setEffective(applies);
 
 		observation.setId(MOCK_ID);
 		observation.setCode(new CodeableConceptDt(MOCK_SYSTEM, MOCK_CODE));
